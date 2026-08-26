@@ -1,0 +1,6 @@
+{
+  "name": "Garden & Lawn Care Scheduler",
+  "description": "Automated text-based garden and lawn maintenance scheduler with local soil temperature, weather, USDA hardiness zones, and plant-specific care alerts.",
+  "requestFramePermissions": ["geolocation", "notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

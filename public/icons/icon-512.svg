@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#343D2C"/>
+  <circle cx="256" cy="256" r="192" fill="#4B5D3F" stroke="#5A6F4C" stroke-width="10"/>
+  <!-- Sprout & Leaf Graphic -->
+  <path d="M256 368 V218" stroke="#E8E5D8" stroke-width="20" stroke-linecap="round"/>
+  <path d="M256 260 C256 180 165 170 160 244 C198 250 245 260 256 260 Z" fill="#D4AE72" stroke="#B9935A" stroke-width="8"/>
+  <path d="M256 228 C256 154 347 144 352 218 C314 224 267 228 256 228 Z" fill="#AFC8AC" stroke="#5A6F4C" stroke-width="8"/>
+  <circle cx="256" cy="384" r="18" fill="#B9935A"/>
+</svg>
