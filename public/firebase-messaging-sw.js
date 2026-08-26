@@ -8,10 +8,10 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-com
 // Supports both standard env fallback and dynamic payload handling
 try {
   firebase.initializeApp({
-    apiKey: 'PLACEHOLDER_API_KEY',
+    apiKey: 'AIzaSyAmgA4RF4NnZ41sFIU3zOmf5K3XnabJo5E',
     authDomain: 'gardencare-app.firebaseapp.com',
-    projectId: 'gardencare-app',
-    storageBucket: 'gardencare-app.appspot.com',
+    projectId: 'maintenance-4bd5b',
+    storageBucket: 'maintenance-4bd5b.appspot.com',
     messagingSenderId: '123456789012',
     appId: '1:123456789012:web:abcdef123456',
   });

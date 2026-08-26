@@ -13,10 +13,10 @@ export interface FirebaseConfig {
 
 // Default / fallback configuration reading from Vite environment variables or localStorage
 export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
-  apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || '',
-  authDomain: (import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || '',
-  projectId: (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET || '',
+  apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || 'AIzaSyAmgA4RF4NnZ41sFIU3zOmf5K3XnabJo5E',
+  authDomain: (import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || 'gardencare-app.firebaseapp.com',
+  projectId: (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID || 'maintenance-4bd5b',
+  storageBucket: (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET || 'maintenance-4bd5b.appspot.com',
   messagingSenderId: (import.meta as any).env?.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
   appId: (import.meta as any).env?.VITE_FIREBASE_APP_ID || '',
   vapidKey: (import.meta as any).env?.VITE_FIREBASE_VAPID_KEY || '',
@@ -107,10 +107,10 @@ export function getOrInitFirebaseApp(): FirebaseApp {
   }
 
   firebaseAppInstance = initializeApp({
-    apiKey: config.apiKey || 'PLACEHOLDER_API_KEY',
+    apiKey: config.apiKey || 'AIzaSyAmgA4RF4NnZ41sFIU3zOmf5K3XnabJo5E',
     authDomain: config.authDomain || 'gardencare-app.firebaseapp.com',
-    projectId: config.projectId || 'gardencare-app',
-    storageBucket: config.storageBucket || 'gardencare-app.appspot.com',
+    projectId: config.projectId || 'maintenance-4bd5b',
+    storageBucket: config.storageBucket || 'maintenance-4bd5b.appspot.com',
     messagingSenderId: config.messagingSenderId || '123456789012',
     appId: config.appId || '1:123456789012:web:abcdef123456',
   });
