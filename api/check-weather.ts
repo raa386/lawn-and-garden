@@ -12,7 +12,6 @@ if (!admin.apps.length) {
   });
 }
 
-// Core weather checking and FCM push execution function required by server.ts
 export async function processWeatherCheckAndPush(lat = 40.7128, lon = -74.0060) {
   try {
     // Fetch 7-day forecast from Open-Meteo
@@ -47,14 +46,24 @@ export async function processWeatherCheckAndPush(lat = 40.7128, lon = -74.0060) 
         }
       }
 
-      // Send Push Notification
-      const message = {
-        notification: {
-          title: '🌱 7-Day Lawn Alert: Time to Buy!',
-          body: `Soil temp hits ${day7SoilTemp}°F in 7 days. Buy Pre-Emergent now (${price} at ${vendor}) to apply on time!`,
-        },
-        topic: 'lawn-alerts',
-      };
+      // Send Push Notification directly to your iPhone FCM token or fallback to topic
+      const targetToken = process.env.MY_IPHONE_FCM_TOKEN;
+
+      const message: admin.messaging.Message = targetToken
+        ? {
+            notification: {
+              title: '🌱 7-Day Lawn Alert: Time to Buy!',
+              body: `Soil temp hits ${day7SoilTemp}°F in 7 days. Buy Pre-Emergent now (${price} at ${vendor}) to apply on time!`,
+            },
+            token: targetToken,
+          }
+        : {
+            notification: {
+              title: '🌱 7-Day Lawn Alert: Time to Buy!',
+              body: `Soil temp hits ${day7SoilTemp}°F in 7 days. Buy Pre-Emergent now (${price} at ${vendor}) to apply on time!`,
+            },
+            topic: 'lawn-alerts',
+          };
 
       await admin.messaging().send(message);
       alerted = true;
