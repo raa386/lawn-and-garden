@@ -11,14 +11,14 @@ export interface FirebaseConfig {
   vapidKey?: string;
 }
 
-// Default / fallback configuration reading from Vite environment variables or localStorage
+// Default / fallback configuration updated with your exact web App ID and Sender ID
 export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
   apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || 'AIzaSyC077NOj3mvbysSUo6FY-alFrWu7HazioA',
   authDomain: (import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || 'gardencare-app.firebaseapp.com',
   projectId: (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID || 'maintenance-4bd5b',
   storageBucket: (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET || 'maintenance-4bd5b.appspot.com',
-  messagingSenderId: (import.meta as any).env?.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: (import.meta as any).env?.VITE_FIREBASE_APP_ID || '',
+  messagingSenderId: (import.meta as any).env?.VITE_FIREBASE_MESSAGING_SENDER_ID || '349596939584',
+  appId: (import.meta as any).env?.VITE_FIREBASE_APP_ID || '1:349596939584:web:7a01168de94394325cf6a5',
   vapidKey: (import.meta as any).env?.VITE_FIREBASE_VAPID_KEY || '',
 };
 
@@ -111,8 +111,8 @@ export function getOrInitFirebaseApp(): FirebaseApp {
     authDomain: config.authDomain || 'gardencare-app.firebaseapp.com',
     projectId: config.projectId || 'maintenance-4bd5b',
     storageBucket: config.storageBucket || 'maintenance-4bd5b.appspot.com',
-    messagingSenderId: config.messagingSenderId || '123456789012',
-    appId: config.appId || '1:123456789012:web:abcdef123456',
+    messagingSenderId: config.messagingSenderId || '349596939584',
+    appId: config.appId || '1:349596939584:web:7a01168de94394325cf6a5',
   });
 
   return firebaseAppInstance;
@@ -196,7 +196,6 @@ export async function registerForPushNotifications(customVapidKey?: string): Pro
     // 3. Obtain Firebase Messaging instance
     const messaging = await getMessagingService();
     if (!messaging) {
-      // Fallback if Firebase Messaging fails to initialize
       return {
         success: true,
         permission,
