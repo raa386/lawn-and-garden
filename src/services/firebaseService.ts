@@ -13,7 +13,7 @@ export interface FirebaseConfig {
 
 // Default / fallback configuration reading from Vite environment variables or localStorage
 export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
-  apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || 'AIzaSyAmgA4RF4NnZ41sFIU3zOmf5K3XnabJo5E',
+  apiKey: (import.meta as any).env?.VITE_FIREBASE_API_KEY || 'AIzaSyC077NOj3mvbysSUo6FY-alFrWu7HazioA',
   authDomain: (import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || 'gardencare-app.firebaseapp.com',
   projectId: (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID || 'maintenance-4bd5b',
   storageBucket: (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET || 'maintenance-4bd5b.appspot.com',
@@ -107,7 +107,7 @@ export function getOrInitFirebaseApp(): FirebaseApp {
   }
 
   firebaseAppInstance = initializeApp({
-    apiKey: config.apiKey || 'AIzaSyAmgA4RF4NnZ41sFIU3zOmf5K3XnabJo5E',
+    apiKey: config.apiKey || 'AIzaSyC077NOj3mvbysSUo6FY-alFrWu7HazioA',
     authDomain: config.authDomain || 'gardencare-app.firebaseapp.com',
     projectId: config.projectId || 'maintenance-4bd5b',
     storageBucket: config.storageBucket || 'maintenance-4bd5b.appspot.com',
