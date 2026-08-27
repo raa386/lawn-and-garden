@@ -1,84 +1,65 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+async function getLivePrice(productQuery: string) {
+  const apiKey = process.env.SERPAPI_KEY;
+  if (!apiKey) return { price: 'Check Price', vendor: 'Online Retailer', url: `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productQuery)}` };
+
+  try {
+    const res = await fetch(`https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(productQuery)}&api_key=${apiKey}`);
+    const data = await res.json();
+    const topResult = data.shopping_results?.[0];
+
+    return {
+      price: topResult?.price || 'Check Price',
+      vendor: topResult?.source || 'Retail Store',
+      url: topResult?.link || `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productQuery)}`
+    };
+  } catch {
+    return { price: 'Check Price', vendor: 'Retail Store', url: `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productQuery)}` };
   }
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     const { soilTempF = 55, airTempF = 70, zone = 'Cool Season', locationName = 'Your Area' } = req.body;
-    
-    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+    const recommendations = [];
 
-    // Fallback if API key hasn't been added to Vercel environment variables yet
-    if (!apiKey) {
-      return res.status(200).json({
-        summary: `Current conditions for ${locationName}: Soil ${soilTempF}°F, Air ${airTempF}°F.`,
-        recommendations: [
-          {
-            id: '1',
-            name: 'Scotts Turf Builder Crabgrass Preventive',
-            category: 'Pre-Emergent Weed Control',
-            price: '$22.98',
-            vendor: 'Home Depot',
-            reasoning: `Soil temps are at ${soilTempF}°F. Apply now before soil consistently reaches 55°F+ to stop crabgrass seeds from germinating.`,
-            applicationTip: 'Apply to dry lawn and water in lightly (0.5 inches of water) immediately after application.',
-            url: `https://www.google.com/search?tbm=shop&q=Scotts+Turf+Builder+Crabgrass+Preventive`
-          },
-          {
-            id: '2',
-            name: 'Milorganite 6-4-0 Organic Nitrogen Fertilizer',
-            category: 'Fertilizer',
-            price: '$18.49',
-            vendor: 'Lowe\'s',
-            reasoning: `Air temps at ${airTempF}°F are optimal for steady root development without burning the turf.`,
-            applicationTip: 'Spread evenly using a broadcast spreader at a rate of 32 lbs per 2,500 sq ft.',
-            url: `https://www.google.com/search?tbm=shop&q=Milorganite+Organic+Nitrogen+Fertilizer`
-          }
-        ],
-        predictions: [],
-        searchGrounded: false,
-        source: 'Lawn AI Engine'
-      });
+    // 1. Determine Product Query based on 7-Day Predicted Conditions
+    let targetProduct = 'Scotts Turf Builder Crabgrass Preventer';
+    let category = 'Pre-Emergent Weed Control';
+    let reasoning = `Predicted 7-day soil temp is ${soilTempF}°F. Apply before 55°F to stop crabgrass seeds.`;
+    let tip = 'Water in with 0.5 inches of rain or sprinkler immediately after spreading.';
+
+    if (soilTempF >= 55) {
+      targetProduct = 'Spectracide Weed Stop for Lawns';
+      category = 'Post-Emergent Weed Control';
+      reasoning = `Predicted soil temp is ${soilTempF}°F. Broadleaf weeds will emerge; spot treat actively.`;
+      tip = 'Apply directly to weeds on warm, calm mornings.';
     }
 
-    // Call Google Gemini 2.5 Flash to generate real real-time recommendations
-    const prompt = `Act as an expert agronomist. User Location: ${locationName}, Hardiness Zone: ${zone}, Soil Temp: ${soilTempF}°F, Air Temp: ${airTempF}°F.
-    Return ONLY a valid JSON object with key "recommendations" containing an array of 2-3 specific lawn products. 
-    Each object must strictly match this structure:
-    {
-      "id": "unique_string",
-      "name": "Exact Brand Product Name",
-      "category": "Fertilizer or Weed Control or Soil Care",
-      "price": "$XX.XX",
-      "vendor": "Store Name",
-      "reasoning": "Detailed trigger reason based on ${soilTempF}°F soil and ${airTempF}°F air temps",
-      "applicationTip": "Specific how-to step for applying this product",
-      "url": "https://www.google.com/search?tbm=shop&q=Exact+Brand+Product+Name"
-    }`;
+    // 2. Fetch Live Price & Store Link
+    const liveData = await getLivePrice(targetProduct);
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json' }
-      })
+    recommendations.push({
+      id: 'rec_predictive_1',
+      name: targetProduct,
+      category,
+      price: liveData.price,
+      vendor: liveData.vendor,
+      reasoning,
+      applicationTip: tip,
+      url: liveData.url
     });
 
-    const aiResult = await response.json();
-    const parsedText = aiResult.candidates?.[0]?.content?.parts?.[0]?.text;
-    const data = JSON.parse(parsedText);
-
     return res.status(200).json({
-      summary: `Condition triggers for ${locationName}: Soil is ${soilTempF}°F, Air is ${airTempF}°F.`,
-      recommendations: data.recommendations || [],
-      predictions: [],
-      searchGrounded: true,
-      source: 'Gemini 2.5 Flash'
+      summary: `7-Day Predictive Analysis for ${locationName}: Target Soil ${soilTempF}°F | Air ${airTempF}°F`,
+      recommendations,
+      source: 'Live SerpAPI + Agronomy Engine'
     });
 
   } catch (error: any) {
-    return res.status(500).json({ error: error.message || 'Error generating recommendations' });
+    return res.status(500).json({ error: error.message });
   }
 }
