@@ -48,17 +48,16 @@ export default function App() {
     }
   });
 
-  // Weather & Soil Condition State (Permanent Home: Islip Terrace, NY 11752 - Long Island, Zone 7b)
-  const defaultLoc = PRESET_LOCATIONS[0];
+  // Weather & Soil Condition State (Default: Islip Terrace, NY 11752)
   const [weather, setWeather] = useState<WeatherCondition>({
     locationName: 'Islip Terrace, NY 11752',
     latitude: 40.7609,
     longitude: -73.1812,
     zone: 'Zone 7b',
-    airTempF: 58,
-    soilTempF: 52,
-    soilTemp0cmF: 55,
-    soilTemp6cmF: 52,
+    airTempF: 75,
+    soilTempF: 72,
+    soilTemp0cmF: 74,
+    soilTemp6cmF: 72,
     precipitation: 0.0,
     soilMoisturePercent: 34,
     conditionText: 'Partly Cloudy',
@@ -66,14 +65,8 @@ export default function App() {
     windMph: 8,
     precipProbability: 15,
     isFrostRisk: false,
-    soilState: 'Early Growth (45-55°F)',
-    forecast: [
-      { date: '2026-03-15', dayName: 'Today', highF: 62, lowF: 44, soilTempF: 52, soilTemp0cmF: 54, soilTemp6cmF: 52, precipProb: 10, condition: 'Partly Cloudy', frostWarning: false },
-      { date: '2026-03-16', dayName: 'Mon', highF: 64, lowF: 46, soilTempF: 53, soilTemp0cmF: 56, soilTemp6cmF: 53, precipProb: 20, condition: 'Mostly Sunny', frostWarning: false },
-      { date: '2026-03-17', dayName: 'Tue', highF: 58, lowF: 40, soilTempF: 51, soilTemp0cmF: 53, soilTemp6cmF: 51, precipProb: 45, condition: 'Light Rain', frostWarning: false },
-      { date: '2026-03-18', dayName: 'Wed', highF: 60, lowF: 42, soilTempF: 52, soilTemp0cmF: 55, soilTemp6cmF: 52, precipProb: 15, condition: 'Clear', frostWarning: false },
-      { date: '2026-03-19', dayName: 'Thu', highF: 66, lowF: 48, soilTempF: 55, soilTemp0cmF: 58, soilTemp6cmF: 55, precipProb: 5, condition: 'Sunny', frostWarning: false },
-    ],
+    soilState: 'Warm / Summer (>70°F)',
+    forecast: [],
     lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   });
 
@@ -122,14 +115,14 @@ export default function App() {
     }
   }, [tasks]);
 
-  // Initial Weather Fetch: Long Island 11752
+  // Initial Weather Fetch
   useEffect(() => {
     const initWeather = async () => {
       setIsLoadingWeather(true);
       try {
         await loadLiveWeather(40.7609, -73.1812, 'Islip Terrace, NY 11752', 'Zone 7b', false);
       } catch (err) {
-        console.warn('Live weather fetch for 11752 encountered error, falling back:', err);
+        console.warn('Live weather fetch error, falling back:', err);
       } finally {
         setIsLoadingWeather(false);
       }
@@ -205,7 +198,6 @@ export default function App() {
     );
   };
 
-  // Bulk Complete Fertilizer Feeds (for Late-Season Catchup or Product-specific)
   const handleBulkCompleteFertilizer = (fertilizerProduct?: string, onlyPastSeasons: boolean = false) => {
     const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     setTasks((prev) =>
@@ -225,7 +217,7 @@ export default function App() {
 
         if (onlyPastSeasons) {
           const maxMonth = t.targetMonths ? Math.max(...t.targetMonths) : 4;
-          if (maxMonth >= currentMonth) return t; // Keep current and future pending
+          if (maxMonth >= currentMonth) return t;
         }
 
         return {
@@ -262,13 +254,12 @@ export default function App() {
     );
   };
 
-  // Bulk Complete All Past Window Tasks (for onboarding late in the season)
   const handleBulkCompleteAllPastTasks = () => {
     const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     setTasks((prev) =>
       prev.map((t) => {
         const maxMonth = t.targetMonths ? Math.max(...t.targetMonths) : 4;
-        if (maxMonth >= currentMonth) return t; // Only complete past tasks
+        if (maxMonth >= currentMonth) return t;
         return {
           ...t,
           completed: true,
@@ -286,7 +277,6 @@ export default function App() {
     setTasks((prev) => [newTask, ...prev]);
   };
 
-  // Plant Management: Add, Edit, Delete
   const handleSavePlant = (savedPlant: PlantRecord) => {
     setPlants((prev) => {
       const exists = prev.some((p) => p.id === savedPlant.id);
@@ -296,7 +286,6 @@ export default function App() {
       return [savedPlant, ...prev];
     });
 
-    // Update associated tasks or generate new task if brand new plant
     setTasks((prev) => {
       const taskIndex = prev.findIndex((t) => t.plantId === savedPlant.id);
       if (taskIndex >= 0) {
@@ -362,13 +351,22 @@ export default function App() {
     }, 100);
   };
 
-  // Strictly calculate tasks that are ready right now based on BOTH season AND soil temperature
+  // Strictly calculate tasks that are ready NOW based on BOTH season AND soil temperature
   const readyNowCount = tasks.filter((t) => {
+    if (t.completed) return false;
     const timing = evaluateTaskTiming(t, weather.soilTempF, currentMonth);
     return timing.isReadyNow;
   }).length;
 
-  const pendingTasksCount = tasks.filter((t) => !t.completed).length;
+  // Pending tasks ONLY include non-completed tasks whose target season/months have NOT passed
+  const pendingTasksCount = tasks.filter((t) => {
+    if (t.completed) return false;
+    if (t.targetMonths && t.targetMonths.length > 0) {
+      const maxTargetMonth = Math.max(...t.targetMonths);
+      if (currentMonth > maxTargetMonth) return false; // Hide passed seasons from pending count
+    }
+    return true;
+  }).length;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-emerald-200 selection:text-emerald-900">
@@ -443,7 +441,7 @@ export default function App() {
             currentZone={weather.zone}
             onToggleTask={handleToggleTask}
             onDeleteCustomTask={handleDeleteCustomTask}
-            onOpenAddTask={() => setIsAddTaskOpen(true)}
+            onOpenAddTask={() => setIsAddTaskOpen(false)}
             onBulkCompletePastTasks={handleBulkCompleteAllPastTasks}
             highlightedTaskId={highlightedTaskId}
             currentMonth={currentMonth}
